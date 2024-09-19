@@ -26,7 +26,19 @@ export default async function(uiBuilder: UIBuilder, { t }: UseTranslationRespons
     const startFieldId = startField.id;
     const endFieldId = endField.id;
 
-    const recordList = (await tableData.getRecords({ pageSize: 5000 })).records;
+    let recordList:string[] = []
+    let hasMorePage = false
+    let nextPageToken: number | undefined = undefined
+    do {
+      const { hasMore, pageToken, records } = await table.getRecordsByPage({
+          pageToken: nextPageToken,
+          pageSize: 200
+      })
+      nextPageToken = pageToken
+      hasMorePage = hasMore
+      recordList = recordList.concat(records)
+  } while (hasMorePage)
+    
 
     const result:any = [];
 
