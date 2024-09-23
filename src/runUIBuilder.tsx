@@ -26,13 +26,26 @@ export default async function(uiBuilder: UIBuilder, { t }: UseTranslationRespons
     const startFieldId = startField.id;
     const endFieldId = endField.id;
 
-    const recordList = (await tableData.getRecords({ pageSize: 5000 })).records;
+    let recordList:string[] = []
+    let hasMorePage = false
+    let nextPageToken: number | undefined = undefined
+    do {
+      const { hasMore, pageToken, records } = await table.getRecordsByPage({
+          pageToken: nextPageToken,
+          pageSize: 200
+      })
+      nextPageToken = pageToken
+      hasMorePage = hasMore
+      recordList = recordList.concat(records)
+  } while (hasMorePage)
+    
 
     const result:any = [];
 
     for (const record of recordList) {
        console.log(result)
 
+      uiBuilder.showLoading("");
       const splitFunction = splitType === '跨年' ? 'getFullYear' : 'getMonth';
       let endValue:any  = record.fields[endFieldId];
       let startValue:any  = record.fields[startFieldId];
@@ -89,7 +102,7 @@ export default async function(uiBuilder: UIBuilder, { t }: UseTranslationRespons
     if (result.length >= 1) {
       await tableData.addRecords(result);
     }
-
+    uiBuilder.hideLoading();
     uiBuilder.message.success('运行成功！');
     
   });
